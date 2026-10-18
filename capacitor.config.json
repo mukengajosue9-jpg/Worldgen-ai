@@ -1,0 +1,6 @@
+{
+  "appId": "ai.worldgen.app",
+  "appName": "Worldgen-ai",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

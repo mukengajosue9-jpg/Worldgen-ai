@@ -1,0 +1,16 @@
+{
+  "name": "worldgen-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Worldgen-ai web app packaged for Android using Capacitor",
+  "scripts": {
+    "build": "echo Static web files are copied to www by the workflow"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}
