@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071a35">
+  <meta name="description" content="Worldgen-ai : outils de vérification prudente des billets et de sécurité financière.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Worldgen-ai — Sécurité financière</title>
+  <style>
+    :root{--navy:#071a35;--blue:#0878f9;--cyan:#27d9ef;--green:#00b982;--ink:#122542;--muted:#61728a;--bg:#f3f7fc;--card:#fff}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink)}
+    header{background:linear-gradient(120deg,#06152e,#0b3470);color:white;padding:22px 18px 25px;border-radius:0 0 26px 26px}
+    .brand{display:flex;align-items:center;gap:12px;max-width:900px;margin:auto}.logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#04c7eb,#1162ef);display:grid;place-items:center;font-size:28px;box-shadow:0 8px 24px #0003}
+    h1{font-size:27px;margin:0;letter-spacing:-.7px} header p{margin:5px 0 0;color:#c5e8ff;font-size:14px}
+    main{max-width:900px;margin:20px auto;padding:0 14px 35px}.notice{background:#fff8e6;border:1px solid #ffe0a3;border-radius:14px;padding:13px 15px;font-size:13px;line-height:1.5;color:#65450a;margin-bottom:16px}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}.tab{border:0;border-radius:12px;padding:12px 5px;background:#e2eaf5;color:#24405f;font-weight:700;font-size:13px;cursor:pointer}.tab.active{background:var(--blue);color:#fff;box-shadow:0 5px 14px #0878f933}
+    .panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid #e2eaf4;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 8px 24px #1b426b08}
+    h2{font-size:20px;margin:0 0 8px} h3{font-size:16px;margin:0 0 8px} .sub{color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 14px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;background:var(--blue);color:white;padding:13px 16px;font-size:15px;font-weight:750;cursor:pointer;text-decoration:none;width:100%;margin-top:8px}.btn.green{background:var(--green)}.btn.secondary{background:#eaf2ff;color:#0756b8}
+    input,select,textarea{width:100%;border:1px solid #ccd8e8;border-radius:11px;padding:12px;font:inherit;background:white;color:var(--ink);margin:5px 0 10px}label{font-size:13px;font-weight:700;display:block}
+    .preview{width:100%;max-height:280px;object-fit:contain;border-radius:12px;background:#edf3fa;display:none;margin-top:12px}.result{padding:14px;border-radius:13px;margin-top:14px;line-height:1.5;font-size:14px}.result.info{background:#eaf4ff;border:1px solid #c9e1ff}.result.warn{background:#fff4df;border:1px solid #ffd995}.result.good{background:#e8fbf3;border:1px solid #b4efd8}
+    .checklist{display:grid;gap:10px}.check{display:flex;gap:10px;align-items:flex-start;padding:11px;border-radius:11px;background:#f5f8fc;font-size:14px;line-height:1.4}.check input{width:auto;margin:3px 0 0}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{border:1px solid #e0e9f5;background:#f8fbff;border-radius:13px;padding:13px}.tile strong{display:block;margin-bottom:4px}.tile span{font-size:13px;color:var(--muted);line-height:1.4}
+    .amount{font-size:27px;font-weight:800;color:#075fc7;margin:8px 0}.small{font-size:12px;color:var(--muted);line-height:1.5} footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 18px 24px}
+    @media(min-width:650px){.tabs{grid-template-columns:repeat(3,1fr)}.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}.btn{width:auto}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  </style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">🌐</div><div><h1>Worldgen-ai</h1><p>Détecteur de billets & sécurité financière</p></div></div></header>
+<main>
+  <div class="notice"><strong>À savoir :</strong> une photo seule ne peut pas certifier qu'un billet est authentique. Worldgen-ai aide à repérer des points à vérifier, mais ne remplace pas les contrôles physiques ni l'avis d'une banque.</div>
+  <nav class="tabs" aria-label="Fonctions">
+    <button class="tab active" data-tab="billets">📷 Billets</button>
+    <button class="tab" data-tab="arnaques">🛡️ Arnaques</button>
+    <button class="tab" data-tab="budget">💰 Budget</button>
+  </nav>
+  <section id="billets" class="panel active">
+    <div class="card">
+      <h2>Examiner un billet</h2><p class="sub">Photographie le billet dans une bonne lumière. L'image reste sur cet appareil dans cette version de démonstration.</p>
+      <label for="currency">Monnaie indiquée</label>
+      <select id="currency"><option>Dollar américain (USD)</option><option>Franc congolais (CDF)</option><option>Euro (EUR)</option><option>Franc CFA (XAF/XOF)</option><option>Livre sterling (GBP)</option><option>Autre / je ne sais pas</option></select>
+      <label for="photo">Prendre ou choisir une photo</label><input id="photo" type="file" accept="image/*" capture="environment">
+      <img id="preview" class="preview" alt="Aperçu du billet choisi">
+      <button id="analyze" class="btn green">🔎 Afficher les vérifications</button>
+      <div id="billResult" aria-live="polite"></div>
+    </div>
+    <div class="card"><h3>Contrôles physiques recommandés</h3>
+      <div class="checklist">
+        <label class="check"><input type="checkbox"> <span><strong>Toucher :</strong> le papier et l'impression ont-ils une texture inhabituelle ?</span></label>
+        <label class="check"><input type="checkbox"> <span><strong>Regarder :</strong> les détails, les couleurs et les lignes sont-ils nets ?</span></label>
+        <label class="check"><input type="checkbox"> <span><strong>Incliner :</strong> certains éléments changent-ils d'aspect selon la lumière ?</span></label>
+        <label class="check"><input type="checkbox"> <span><strong>Vérifier :</strong> compare avec les consignes officielles de la banque centrale pour cette monnaie.</span></label>
+      </div>
+      <p class="small">Les dispositifs de sécurité diffèrent selon la monnaie, la valeur et la série du billet. N'utilise pas une liste générique comme preuve définitive.</p>
+    </div>
+  </section>
+  <section id="arnaques" class="panel">
+    <div class="card"><h2>Vérifier un message suspect</h2><p class="sub">Colle le SMS, le message ou la proposition financière. L'analyse locale recherche des signaux d'alerte simples, pas toutes les fraudes possibles.</p>
+      <label for="message">Message à examiner</label><textarea id="message" rows="5" placeholder="Ex. : Gagnez 500 % en 2 jours, payez des frais pour débloquer votre retrait..."></textarea>
+      <button id="scanMessage" class="btn">🛡️ Analyser les signaux d'alerte</button><div id="scamResult" aria-live="polite"></div>
+    </div>
+    <div class="grid">
+      <div class="tile"><strong>🚫 Ne paie pas pour recevoir un gain</strong><span>Les frais urgents pour débloquer un prix ou un retrait sont un signal d'alerte.</span></div>
+      <div class="tile"><strong>🔑 Protège tes codes</strong><span>Ne partage jamais ton PIN, ton mot de passe ou un code de validation.</span></div>
+      <div class="tile"><strong>🔗 Vérifie par un autre canal</strong><span>Contacte directement la banque ou l'entreprise via ses coordonnées officielles.</span></div>
+    </div>
+  </section>
+  <section id="budget" class="panel">
+    <div class="card"><h2>Calculateur de budget</h2><p class="sub">Renseigne tes montants pour estimer ce qu'il te reste. Les données ne sont pas envoyées à un serveur.</p>
+      <label for="income">Revenus (FC ou autre monnaie)</label><input id="income" type="number" min="0" step="any" placeholder="Ex. 250000">
+      <label for="expenses">Dépenses totales</label><input id="expenses" type="number" min="0" step="any" placeholder="Ex. 125000">
+      <button id="calculate" class="btn">Calculer mon solde</button><div id="budgetResult" aria-live="polite"></div>
+    </div>
+    <div class="card"><h3>Règles simples pour protéger ton argent</h3><p class="sub">• Note tes dépenses régulièrement.<br>• Garde une réserve pour les urgences si possible.<br>• Méfie-toi des rendements élevés garantis.<br>• Vérifie le destinataire avant chaque transfert.</p></div>
+  </section>
+</main>
+<footer>Worldgen-ai · Outil d'information, pas un service bancaire ni une certification d'authenticité.</footer>
+<script>
+  const tabs=[...document.querySelectorAll('.tab')];
+  tabs.forEach(b=>b.addEventListener('click',()=>{tabs.forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===b.dataset.tab));}));
+  const photo=document.getElementById('photo'), preview=document.getElementById('preview');
+  photo.addEventListener('change',()=>{const f=photo.files&&photo.files[0];if(!f)return;if(!f.type.startsWith('image/')){alert('Choisis un fichier image.');return;}preview.src=URL.createObjectURL(f);preview.style.display='block';document.getElementById('billResult').innerHTML='';});
+  document.getElementById('analyze').addEventListener('click',()=>{
+    const f=photo.files&&photo.files[0], curr=document.getElementById('currency').value, out=document.getElementById('billResult');
+    if(!f){out.innerHTML='<div class="result warn">Choisis d’abord une photo du billet. Sans image, aucun examen visuel n’est possible.</div>';return;}
+    out.innerHTML='<div class="result warn"><strong>Vérification supplémentaire nécessaire</strong><br>Monnaie sélectionnée : '+curr+'. Cette version ne dispose pas encore d’un modèle d’IA entraîné pour authentifier les billets et ne peut pas conclure à partir de la photo. Examine les éléments de sécurité physiques et compare avec une source officielle. En cas de doute, demande à une banque.</div>';
+  });
+  document.getElementById('scanMessage').addEventListener('click',()=>{
+    const s=document.getElementById('message').value.trim(), out=document.getElementById('scamResult');
+    if(!s){out.innerHTML='<div class="result info">Entre d’abord le message à examiner.</div>';return;}
+    const rules=[
+      ['gain garanti / rendement incroyable',/garanti|sans risque|rendement|profit|gagne[rz]? .*%|500 ?%|1000 ?%/i],
+      ['pression ou urgence',/urgent|immédiatement|dernière chance|aujourd’hui|dans \d+ heures|vite/i],
+      ['frais pour débloquer un gain',/frais|débloquer|déblocage|payer.*(retrait|gain|prix|colis)|taxe.*(gain|prix)/i],
+      ['demande d’informations secrètes',/mot de passe|code pin|code de validation|otp|secret bancaire/i],
+      ['transfert vers un compte ou portefeuille',/envoyez|transfère[zr]?|transfert|crypto|portefeuille|wallet/i]
+    ];
+    const hits=rules.filter(r=>r[1].test(s));
+    out.innerHTML=hits.length
+      ? '<div class="result warn"><strong>Signaux d’alerte repérés : '+hits.length+'</strong><ul>'+hits.map(h=>'<li>'+h[0]+'</li>').join('')+'</ul>Ce résultat n’est pas une preuve de fraude. Ne paie pas et ne partage pas de codes avant d’avoir vérifié l’expéditeur par un canal officiel.</div>'
+      : '<div class="result info"><strong>Aucun signal connu repéré par ce contrôle simple.</strong><br>Cela ne signifie pas que le message est fiable. Vérifie l’identité de l’expéditeur, les liens, les conditions et les promesses avant d’agir.</div>';
+  });
+  document.getElementById('calculate').addEventListener('click',()=>{
+    const a=Number(document.getElementById('income').value), b=Number(document.getElementById('expenses').value), out=document.getElementById('budgetResult');
+    if(document.getElementById('income').value===''||document.getElementById('expenses').value===''||a<0||b<0){out.innerHTML='<div class="result warn">Saisis deux montants valides, égaux ou supérieurs à zéro.</div>';return;}
+    const v=a-b, fmt=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2}).format(v);
+    out.innerHTML='<div class="result '+(v>=0?'good':'warn')+'"><div class="small">Solde estimé</div><div class="amount">'+fmt+'</div>'+(v>=0?'Il te reste ce montant.':'Tes dépenses dépassent tes revenus de '+new Intl.NumberFormat('fr-FR',{maximumFractionDigits:2}).format(Math.abs(v))+'.')+'</div>';
+  });
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>

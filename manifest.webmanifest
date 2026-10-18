@@ -1,0 +1,19 @@
+{
+  "name": "Worldgen-ai — Sécurité financière",
+  "short_name": "Worldgen-ai",
+  "description": "Outils de vérification prudente des billets et de sécurité financière.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f7fc",
+  "theme_color": "#071a35",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "fr"
+}
