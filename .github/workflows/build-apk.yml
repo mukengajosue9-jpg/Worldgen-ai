@@ -9,29 +9,33 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Télécharger le code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Installer Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Installer Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      - name: Installer Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Installer les dépendances
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install dependencies
         run: npm install
 
-      - name: Préparer les fichiers de l'application
+      - name: Prepare web assets
         run: |
           mkdir -p www
           cp index.html www/
@@ -39,19 +43,21 @@ jobs:
           cp sw.js www/
           cp icon.svg www/
 
-      - name: Configurer Android
-        run: |
-          npx cap add android
-          npx cap sync android
+      - name: Create Android project
+        run: npx cap add android
 
-      - name: Construire l'APK
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Publier le fichier APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Worldgen-ai-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
