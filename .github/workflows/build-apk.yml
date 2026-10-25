@@ -1,3 +1,5 @@
+
+
 name: Build Worldgen-ai APK
 
 on:
@@ -15,6 +17,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,11 +27,11 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Setup Java
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
@@ -55,21 +58,27 @@ jobs:
             exit 1
           fi
           cp index.html www/index.html
-          if [ -f manifest.webmanifest ]; then cp manifest.webmanifest www/manifest.webmanifest; fi
-          if [ -f icon.svg ]; then cp icon.svg www/icon.svg; fi
-          if [ -f sw.js ]; then cp sw.js www/sw.js; fi
+          if [ -f manifest.webmanifest ]; then
+            cp manifest.webmanifest www/manifest.webmanifest
+          fi
+          if [ -f icon.svg ]; then
+            cp icon.svg www/icon.svg
+          fi
+          if [ -f sw.js ]; then
+            cp sw.js www/sw.js
+          fi
 
       - name: Ensure Capacitor configuration
         run: |
           set -e
           if [ ! -f capacitor.config.json ]; then
-            cat > capacitor.config.json <<'EOF_CONFIG'
+            cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.worldgenai.app",
             "appName": "Worldgen-ai",
             "webDir": "www"
           }
-          EOF_CONFIG
+          EOF
           fi
 
       - name: Create Android project
