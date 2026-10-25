@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071426">
+<title>Worldgen-ai — Scanner CDF/USD</title>
+<style>
+:root{color-scheme:dark;--bg:#071426;--panel:#10223b;--line:#294563;--blue:#38bdf8;--text:#eef6ff;--muted:#a8bad0;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#071426,#0c1e34);color:var(--text);font:16px/1.5 system-ui,Arial,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:18px 16px;border-bottom:1px solid var(--line)}
+.logo{width:48px;height:48px;border:2px solid var(--blue);border-radius:15px;display:grid;place-items:center;font-weight:900;font-size:23px;color:var(--blue);box-shadow:0 0 20px #38bdf833}
+h1{font-size:19px;margin:0}header p{margin:3px 0 0;color:var(--muted);font-size:12px}
+main{max-width:760px;margin:auto;padding:16px 13px 40px}.hero,.panel{padding:19px;border:1px solid var(--line);border-radius:19px;background:var(--panel);margin-bottom:15px}
+.hero{background:linear-gradient(130deg,#12345a,#10223b)}h2{font-size:23px;margin:0 0 8px}h3{margin:0 0 10px}p{color:var(--muted);margin:8px 0 14px}
+label{display:block;font-size:14px;margin:10px 0 5px;color:#d4e4f5}input,select{width:100%;padding:12px;border-radius:11px;border:1px solid #3b5574;background:#08182b;color:white;font-size:16px}
+button{border:0;border-radius:12px;background:var(--blue);color:#061426;font-weight:800;padding:13px 15px;width:100%;margin-top:12px;cursor:pointer}button:disabled{opacity:.55}
+.preview{display:block;width:100%;max-height:310px;object-fit:contain;background:#061426;border-radius:12px;margin-top:12px}.result{white-space:pre-wrap;background:#08182b;border:1px solid #34516f;border-radius:12px;padding:14px;margin-top:14px;overflow-wrap:anywhere}
+.note{font-size:12px;color:var(--muted)}.warning{border-left:3px solid var(--amber);padding-left:10px}.status{color:var(--blue);font-weight:700}footer{text-align:center;color:var(--muted);font-size:12px;padding:14px}
+</style>
+</head>
+<body>
+<header><div class="logo" aria-label="Worldgen-ai logo">W⌕</div><div><h1>Worldgen-ai</h1><p>SCANNER DE BILLETS · CDF & USD</p></div></header>
+<main>
+<section class="hero"><h2>Vérifiez avant d’accepter.</h2><p>Capturez un billet en francs congolais ou en dollars américains. L’application contrôle la qualité de l’image et peut utiliser un modèle local lorsqu’un modèle entraîné est installé.</p><div class="status" id="modelStatus">Modèle IA : non installé</div></section>
+<section class="panel">
+<h3>🔎 Scanner intelligent</h3>
+<label for="currency">Devise</label>
+<select id="currency"><option value="CDF">Franc congolais (CDF)</option><option value="USD">Dollar américain (USD)</option></select>
+<label for="photo">Photo du billet</label>
+<input id="photo" type="file" accept="image/*" capture="environment">
+<img id="preview" class="preview" hidden alt="Aperçu de la photo du billet">
+<button id="scan" disabled>Analyser la photo</button>
+<div id="result" class="result" aria-live="polite">Choisissez une photo pour commencer.</div>
+<p class="note warning">Important : aucune IA ne peut certifier un billet à partir d’une photo seule. Le modèle de classification n’est pas inclus, car il doit être entraîné et validé avec des images fiables de billets authentiques et contrefaits pour chaque devise et série.</p>
+</section>
+<section class="panel"><h3>🛡️ Contrôles physiques recommandés</h3><ul>
+<li>Comparez avec un billet officiel de même valeur et de même série.</li>
+<li>Vérifiez le filigrane en tenant le billet face à la lumière, si ce dispositif existe.</li>
+<li>Examinez le fil de sécurité et les impressions en relief, selon la série.</li>
+<li>En cas de doute, demandez une vérification à une banque ou à l’autorité monétaire.</li>
+</ul><p class="note">Ne remettez pas en circulation un billet suspect. Une photo nette et un score informatique ne constituent pas une preuve d’authenticité.</p></section>
+</main><footer>Worldgen-ai · Les photos sont traitées localement dans cette page.</footer>
+<script>
+const input=document.querySelector('#photo'), preview=document.querySelector('#preview'), scan=document.querySelector('#scan'), result=document.querySelector('#result');
+let image=null;
+input.addEventListener('change',()=>{
+ image=null; scan.disabled=true;
+ const file=input.files&&input.files[0];
+ if(!file){preview.hidden=true;result.textContent='Choisissez une photo pour commencer.';return;}
+ if(!file.type.startsWith('image/')){result.textContent='Choisissez un fichier image valide.';input.value='';return;}
+ if(file.size>12*1024*1024){result.textContent='Image trop volumineuse. Choisissez une photo de moins de 12 Mo.';input.value='';return;}
+ const reader=new FileReader();
+ reader.onload=()=>{const img=new Image();img.onload=()=>{image=img;preview.src=reader.result;preview.hidden=false;scan.disabled=false;result.textContent='Photo chargée. Appuyez sur Analyser la photo.'};img.onerror=()=>result.textContent='Impossible de lire la photo.';img.src=reader.result};
+ reader.readAsDataURL(file);
+});
+scan.addEventListener('click',()=>{
+ if(!image)return;
+ scan.disabled=true;result.textContent='Analyse locale de la qualité de l’image…';
+ try{
+  const max=500,scale=Math.min(1,max/Math.max(image.naturalWidth,image.naturalHeight));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(image.naturalWidth*scale));c.height=Math.max(1,Math.round(image.naturalHeight*scale));
+  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,c.width,c.height);
+  const data=ctx.getImageData(0,0,c.width,c.height).data;let sum=0,sum2=0,n=0;
+  for(let i=0;i<data.length;i+=16){const l=.2126*data[i]+.7152*data[i+1]+.0722*data[i+2];sum+=l;sum2+=l*l;n++}
+  const mean=sum/n,contrast=Math.sqrt(Math.max(0,sum2/n-mean*mean));
+  const tips=[];
+  if(mean<55)tips.push('Photo trop sombre : ajoutez de la lumière.');
+  if(mean>225)tips.push('Photo surexposée : réduisez les reflets.');
+  if(contrast<28)tips.push('Contraste faible : faites la mise au point et rapprochez-vous.');
+  if(Math.min(image.naturalWidth,image.naturalHeight)<250)tips.push('Résolution faible : prenez une photo plus nette.');
+  if(!tips.length)tips.push('Qualité générale de la photo acceptable pour une vérification manuelle.');
+  result.textContent='ANALYSE TECHNIQUE LOCALE\\nDevise sélectionnée : '+document.querySelector('#currency').value+
+   '\\nTaille de la photo : '+image.naturalWidth+' × '+image.naturalHeight+
+   '\\nLuminosité moyenne : '+Math.round(mean)+'/255\\nContraste estimé : '+Math.round(contrast)+'/255\\n\\nConseils :\\n• '+tips.join('\\n• ')+
+   '\\n\\nRésultat d’authenticité : NON DÉTERMINÉ. Aucun modèle IA entraîné n’est installé. Cette analyse ne dit pas si le billet est vrai ou faux.';
+ }catch(e){result.textContent='Analyse impossible. Essayez une autre photo.'}
+ scan.disabled=false;
+});
+</script>
+</body></html>
