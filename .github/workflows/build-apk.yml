@@ -6,8 +6,6 @@ on:
   push:
     paths:
       - "index.html"
-      - "package.json"
-      - "capacitor.config.json"
       - ".github/workflows/build-apk.yml"
 
 permissions:
@@ -31,27 +29,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: package-lock.json
 
-      - name: Verifier les fichiers
+      - name: Verifier index.html
         run: |
-          test -f index.html || {
-            echo "ERREUR: index.html est absent"
+          if [ ! -f index.html ]; then
+            echo "ERREUR : index.html est absent"
             exit 1
-          }
+          fi
 
-      - name: Creer la configuration du projet
+      - name: Creer la configuration
         run: |
           cat > package.json <<'EOF'
           {
             "name": "worldgen-ai",
             "version": "1.0.0",
             "private": true,
-            "description": "Worldgen-ai - scanner de billets",
-            "scripts": {
-              "build": "echo Build termine"
-            },
+            "description": "Worldgen-ai",
             "dependencies": {
               "@capacitor/core": "^7.4.3"
             },
@@ -73,21 +66,19 @@ jobs:
           mkdir -p www
           cp index.html www/index.html
 
-      - name: Installer Capacitor
-        run: |
-          npm install
+      - name: Installer les dependances
+        run: npm install
 
       - name: Initialiser Android
-        run: |
-          npx cap add android
+        run: npx cap add android
 
-      - name: Compiler APK
+      - name: Compiler l'APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Publier APK
+      - name: Publier le fichier APK
         uses: actions/upload-artifact@v4
         with:
           name: Worldgen-ai-APK
