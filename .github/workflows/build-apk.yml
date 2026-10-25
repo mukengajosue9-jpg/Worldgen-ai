@@ -1,3 +1,4 @@
+
 name: Build Worldgen-ai APK
 
 on:
@@ -5,10 +6,19 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'index.html'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,31 +26,36 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Accept Android SDK licenses non-interactively
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      - name: Install Android SDK packages
+        shell: bash
         run: |
-          set +o pipefail
-          yes | sdkmanager --licenses >/dev/null
-          set -o pipefail
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager introuvable"
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Install dependencies
         run: npm install
 
       - name: Prepare web assets
+        shell: bash
         run: |
           mkdir -p www
           cp index.html www/
@@ -66,3 +81,5 @@ jobs:
           name: Worldgen-ai-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          retention-days: 7
+
