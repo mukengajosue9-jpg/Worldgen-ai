@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071a35">
+<title>Worldgen-ai</title>
+<style>
+body{margin:0;background:#f3f7fc;color:#15243a;font-family:Arial,sans-serif}
+header{background:#071a35;color:white;padding:24px 16px}
+main{max-width:850px;margin:20px auto;padding:0 14px}
+.card{background:white;border:1px solid #dbe5f0;border-radius:14px;padding:18px;margin:14px 0}
+label{display:block;font-weight:bold;margin:12px 0 5px}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd8e7;border-radius:9px}
+button{padding:11px 14px;border:0;border-radius:9px;background:#0878f9;color:white;font-weight:bold;margin:8px 5px 0 0}
+.secondary{background:#eaf3ff;color:#071a35}
+.status{padding:12px;background:#eaf4ff;border-radius:9px;margin-top:12px;overflow-wrap:anywhere}
+.muted{color:#64748b;font-size:14px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+<h1>🌐 Worldgen-ai</h1>
+<p>Sécurité financière et outils intelligents</p>
+</header>
+
+<main>
+<section class="card">
+<h2>👤 Mon compte</h2>
+<p class="muted">Crée un compte ou connecte-toi.</p>
+
+<div id="signedOut">
+<label for="email">Adresse e-mail</label>
+<input id="email" type="email" placeholder="toi@exemple.com" autocomplete="email">
+
+<label for="password">Mot de passe (6 caractères minimum)</label>
+<input id="password" type="password" minlength="6" autocomplete="current-password">
+
+<button id="register">Créer un compte</button>
+<button id="login" class="secondary">Se connecter</button>
+</div>
+
+<div id="signedIn" hidden>
+<p id="userInfo"></p>
+<button id="logout">Se déconnecter</button>
+</div>
+
+<div id="authStatus" class="status" aria-live="polite">
+Connexion à Firebase…
+</div>
+</section>
+
+<section class="card">
+<h2>💵 Vérification d'un billet</h2>
+<p>Une photo seule ne permet pas de prouver qu'un billet est authentique.</p>
+<label for="currency">Monnaie</label>
+<select id="currency">
+<option>USD</option><option>CDF</option>
+<option>EUR</option><option>ZAR</option>
+</select>
+<label for="photo">Photo du billet</label>
+<input id="photo" type="file" accept="image/*" capture="environment">
+<button id="checkBill">Afficher les conseils</button>
+<div id="billResult" class="status">
+Compare les éléments de sécurité avec les informations officielles de la banque centrale.
+</div>
+</section>
+
+<section class="card">
+<h2>🧾 Calculateur de budget</h2>
+<label for="income">Revenus</label>
+<input id="income" type="number" min="0" placeholder="Ex. 300000">
+<label for="expenses">Dépenses</label>
+<input id="expenses" type="number" min="0" placeholder="Ex. 180000">
+<button id="calculate">Calculer le solde</button>
+<div id="budgetResult" class="status"></div>
+</section>
+
+<section class="card">
+<h2>🛡️ Sécurité contre les arnaques</h2>
+<label for="message">Message suspect reçu</label>
+<textarea id="message" placeholder="Colle le message ici"></textarea>
+<button id="scanMessage">Examiner le message</button>
+<div id="messageResult" class="status"></div>
+</section>
+
+<section class="card">
+<h2>🛍️ Assistant pour petite entreprise</h2>
+<label for="product">Produit ou service</label>
+<input id="product" placeholder="Ex. vêtements">
+<label for="audience">Clientèle</label>
+<input id="audience" placeholder="Ex. étudiants">
+<button id="generate">Préparer une publicité</button>
+<div id="businessResult" class="status"></div>
+</section>
+</main>
+
+<script type="module">
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRcmkjaljMKySb0tftYUjSXq7AB2mo96E",
+  authDomain: "worldgen-ai.firebaseapp.com",
+  projectId: "worldgen-ai",
+  storageBucket: "worldgen-ai.firebasestorage.app",
+  messagingSenderId: "507599282745",
+  appId: "1:507599282745:web:f958f61649b6cc549ee3e8",
+  measurementId: "G-73XL59J53N"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+
+function showStatus(message) {
+  $("authStatus").textContent = message;
+}
+
+function explainError(error) {
+  const messages = {
+    "auth/email-already-in-use":
+      "Cette adresse possède déjà un compte. Essaie de te connecter.",
+    "auth/invalid-email":
+      "Adresse e-mail invalide.",
+    "auth/weak-password":
+      "Le mot de passe doit contenir au moins 6 caractères.",
+    "auth/invalid-credential":
+      "Adresse e-mail ou mot de passe incorrect.",
+    "auth/network-request-failed":
+      "Vérifie ta connexion Internet.",
+    "auth/operation-not-allowed":
+      "Active la connexion e-mail/mot de passe dans Firebase Authentication."
+  };
+
+  showStatus(messages[error.code] || "Erreur : " + error.code);
+}
+
+$("register").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || password.length < 6) {
+    showStatus("Entre une adresse e-mail valide et un mot de passe d'au moins 6 caractères.");
+    return;
+  }
+
+  showStatus("Création du compte en cours…");
+
+  try {
+    const result = await createUserWithEmailAndPassword(
+      auth, email, password
+    );
+
+    await setDoc(doc(db, "users", result.user.uid), {
+      email: result.user.email,
+      createdAt: serverTimestamp()
+    });
+
+    showStatus("Compte créé et profil enregistré !");
+  } catch (error) {
+    explainError(error);
+  }
+});
+
+$("login").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || !password) {
+    showStatus("Entre ton adresse e-mail et ton mot de passe.");
+    return;
+  }
+
+  showStatus("Connexion en cours…");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    showStatus("Connexion réussie !");
+  } catch (error) {
+    explainError(error);
+  }
+});
+
+$("logout").addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    showStatus("Tu es déconnecté.");
+  } catch (error) {
+    explainError(error);
+  }
+});
+
+onAuthStateChanged(auth, user => {
+  $("signedOut").hidden = !!user;
+  $("signedIn").hidden = !user;
+
+  if (user) {
+    $("userInfo").textContent = "Connecté : " + user.email;
+  }
+});
+
+$("calculate").addEventListener("click", () => {
+  const income = $("income").value;
+  const expenses = $("expenses").value;
+
+  if (income === "" || expenses === "" ||
+      Number(income) < 0 || Number(expenses) < 0) {
+    $("budgetResult").textContent = "Entre des montants valides.";
+    return;
+  }
+
+  const balance = Number(income) - Number(expenses);
+
+  $("budgetResult").textContent =
+    "Solde estimé : " +
+    new Intl.NumberFormat("fr-FR").format(balance);
+});
+
+$("checkBill").addEventListener("click", () => {
+  $("billResult").textContent =
+    "Ce site ne possède pas encore de modèle validé pour détecter les faux billets. Vérifie les éléments de sécurité officiels et consulte une banque en cas de doute.";
+});
+
+$("scanMessage").addEventListener("click", () => {
+  const message = $("message").value.trim();
+
+  if (!message) {
+    $("messageResult").textContent = "Colle un message à examiner.";
+    return;
+  }
+
+  const patterns = [
+    /gain garanti|argent facile|profit garanti/i,
+    /urgent|immédiatement|tout de suite/i,
+    /payer.*(prix|gain|récompense|colis)/i,
+    /mot de passe|code pin|code de validation|otp/i,
+    /envoyez de l'argent|transférez/i
+  ];
+
+  const count = patterns.filter(pattern => pattern.test(message)).length;
+
+  $("messageResult").textContent = count
+    ? "Attention : des signaux d'alerte ont été repérés. Ne partage aucun code et vérifie par un canal officiel."
+    : "Aucun signal courant repéré. Cela ne garantit pas que le message est fiable.";
+});
+
+$("generate").addEventListener("click", () => {
+  const product = $("product").value.trim();
+  const audience = $("audience").value.trim() || "nos clients";
+
+  $("businessResult").textContent = product
+    ? "Découvrez " + product + ", pensé pour " + audience +
+      ". Contactez-nous pour en savoir plus et passer commande."
+    : "Indique un produit ou service.";
+});
+</script>
+</body>
+</html>
